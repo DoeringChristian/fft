@@ -1,5 +1,39 @@
 #include "fft.h"
 #include <stdio.h>
+#include <time.h>
+
+#define TIME_SINGLE(...){\
+    struct timespec _tv1 = {0, 0}, _tv2 = {0, 0};\
+    clock_gettime(CLOCK_MONOTONIC, &_tv1);\
+    \
+    __VA_ARGS__;\
+    \
+    clock_gettime(CLOCK_MONOTONIC, &_tv2);\
+    double _sec = (double)(_tv2.tv_sec - _tv1.tv_sec) * 1\
+            + (double)(_tv2.tv_nsec - _tv1.tv_nsec) * 1e-9;\
+    printf("Timed Code:\n");\
+    printf(#__VA_ARGS__);\
+    printf("\n");\
+    printf("time: %f s = %f ns\n", _sec, _sec * 1e9);\
+}
+
+#define TIME_MULTI(_n, ...){\
+    struct timespec _tv1 = {0, 0}, _tv2 = {0, 0};\
+    clock_gettime(CLOCK_MONOTONIC, &_tv1);\
+    \
+    for(size_t _i = 0;_i < _n;_i++){\
+        __VA_ARGS__;\
+    }\
+    \
+    clock_gettime(CLOCK_MONOTONIC, &_tv2);\
+    double _sec = (double)(_tv2.tv_sec - _tv1.tv_sec) * 1\
+            + (double)(_tv2.tv_nsec - _tv1.tv_nsec) * 1e-9;\
+    _sec /= (double)_n;\
+    printf("Timed Code:\n");\
+    printf(#__VA_ARGS__);\
+    printf("\n");\
+    printf("time: %f s = %f ns\n", _sec, _sec * 1e9);\
+}
 
 static inline int veccn_print(const float complex *src, size_t n){
     printf("(");
@@ -83,6 +117,16 @@ void test_fft2n(){
     fft2n(src1, dst1, 8);
 
     matnm_print(src1, 2, 8);
+
+    printf("\n");
+
+
+    const size_t n = 0x10000;
+    float src[n*2], dst[n*2];
+
+    printf("Test: fft2n speed n = %zu:\n\n", n);
+
+    TIME_MULTI(100, fft2n(dst, src, n));
 
     printf("\n");
 }

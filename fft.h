@@ -133,7 +133,10 @@ FFT_FLOAT *fftri(float *dst_real, float *dst_imag, const FFT_FLOAT *src_real, co
                 dst_imag[k+m] = u[1] - t[1];
 
             }
-            vec2_cmult(w, w, wm);
+            // w = w * wm
+            float wreal = w[0] * wm[0] - w[1] * wm[1];
+            w[1] = w[0] * wm[1] + w[1] * wm[0];
+            w[0] = wreal;
         }
     }
     return dst_real;
@@ -184,8 +187,10 @@ FFT_FLOAT *fft2n(float *dst, const float *src, FFT_SIZE n){
                 // k + m is the index of the right element.
 
                 //FFT_FLOAT complex t = w * dst[k + m]; // t = e^(-i*pi*section_elemt/(2^recursion_layer)) * x_right
-                FFT_FLOAT t[2];
-                vec2_cmult(t, w, &dst[(k+m) * 2]);
+                FFT_FLOAT t[2] = {
+                    w[0] * dst[(k+m) * 2 +0] - w[1] * dst[(k+m) * 2 +1],
+                    w[0] * dst[(k+m) * 2 +1] + w[1] * dst[(k+m) * 2 +0]
+                };
                 //FFT_FLOAT complex u = dst[k]; // u = x_left
                 FFT_FLOAT u[2] = {
                     dst[k * 2 +0],
@@ -201,7 +206,10 @@ FFT_FLOAT *fft2n(float *dst, const float *src, FFT_SIZE n){
                 dst[(k+m) *2 +1] = u[1] - t[1];
 
             }
-            vec2_cmult(w, w, wm);
+            // w = w * wm
+            float wreal = w[0] * wm[0] - w[1] * wm[1];
+            w[1] = w[0] * wm[1] + w[1] * wm[0];
+            w[0] = wreal;
         }
     }
     return dst;
